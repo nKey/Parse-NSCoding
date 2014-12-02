@@ -73,17 +73,7 @@
             id obj = [aDecoder decodeObjectForKey:key];
 			self[key] = obj;
 		}
-		
-		//Deserialize all nil Parse properties with NSNull
-		//This is to prevent an NSInternalConsistencyException when trying to access them in the future
-		//Loop through all dynamic properties that aren't in [self allKeys]
-		NSDictionary* allParseProperties = [self dynamicProperties];
-		for (NSString* key in allParseProperties) {
-			if (![allKeys containsObject:key]) {
-				self[key] = [NSNull null];
-			}
-		}
-		
+				
 		//Deserialize all non-Parse properties
 		NSDictionary* nonParseProperties = [self nonDynamicProperties];
 		[self decodeProperties:nonParseProperties withCoder:aDecoder];
