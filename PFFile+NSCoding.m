@@ -31,7 +31,7 @@
     NSDictionary* ivars = [aDecoder decodeObjectForKey:kPFFileIvars];
     NSData* data = [aDecoder decodeObjectForKey:kPFFileData];
     
-    self = [PFFile fileWithName:name data:data];
+    self = [PFFile fileWithName:name data:data ? data : [NSData data]];
     if (self) {
         for (NSString* key in [ivars allKeys]) {
             [self setValue:ivars[key] forKey:key];
