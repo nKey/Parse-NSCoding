@@ -7,6 +7,7 @@
 //
 
 #import "PFFile+NSCoding.h"
+#import "NSObject+Properties.h"
 #import <objc/runtime.h>
 
 #define kPFFileName @"_name"
@@ -39,16 +40,6 @@
     return self;
 }
 
-+ (BOOL)canEncodeObject:(id)object
-{
-    BOOL retVal = NO;
-    
-    if ([object respondsToSelector:@selector(encodeWithCoder:)])
-        retVal = YES;
-    
-    return retVal;
-}
-
 - (NSDictionary *)ivars
 {
     NSMutableDictionary* dict = [[NSMutableDictionary alloc] init];
@@ -59,9 +50,8 @@
         Ivar ivar = ivars[i];
         NSString* ivarNameString = [NSString stringWithUTF8String:ivar_getName(ivar)];
         NSValue* value = [self valueForKey:ivarNameString];
-        if ([PFFile canEncodeObject:value]) {
+        if ([NSObject canEncodeObject:value])
             [dict setValue:value forKey:ivarNameString];
-        }
     }
     
     free(ivars);

@@ -8,10 +8,31 @@
 
 #import "NSObject+Properties.h"
 #import <objc/runtime.h>
+#import "PFFile.h"
 
 @implementation NSObject (Properties)
 
 #pragma mark - Public
+
++ (BOOL)canEncodeObjectOfClass:(Class)class
+{
+    BOOL retVal = NO;
+    if (class == [PFFile class] ||
+        ([class conformsToProtocol:@protocol(NSCoding)] && class != [NSAttributedString class]))
+        retVal = YES;
+    
+    return retVal;
+}
+
++ (BOOL)canEncodeObject:(id)object
+{
+    BOOL retVal = NO;
+
+    if ([object respondsToSelector:@selector(encodeWithCoder:)])
+        retVal = YES;
+
+    return retVal;
+}
 
 - (NSDictionary *)properties {
     return [self propertiesForClass:[self class]];
@@ -67,13 +88,13 @@
                 if ([[type componentsSeparatedByString:@"\""] count] > 1) {
                     className = [[type componentsSeparatedByString:@"\""] objectAtIndex:1];
                     Class class = NSClassFromString(className);
+                    // only decode if the property conforms to NSCoding
+                    if([NSObject canEncodeObjectOfClass:class]){
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
-                    value = [self performSelector:NSSelectorFromString(key)];
+                        value = [self performSelector:NSSelectorFromString(key)];
 #pragma clang diagnostic pop
-					
-                    // only decode if the property conforms to NSCoding
-                    if([class conformsToProtocol:@protocol(NSCoding)]){
+
                         [coder encodeObject:value forKey:key];
                     }
                 }
@@ -152,8 +173,8 @@
                     className = [[type componentsSeparatedByString:@"\""] objectAtIndex:1];
                     Class class = NSClassFromString(className);
                     // only decode if the property conforms to NSCoding
-                    if ([class conformsToProtocol:@protocol(NSCoding )]){
-                        value = [coder decodeObjectForKey:key];
+                    value = [coder decodeObjectForKey:key];
+                    if (value && [NSObject canEncodeObject:value]){
                         [self setValue:value forKey:key];
                     }
                 }

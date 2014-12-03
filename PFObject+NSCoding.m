@@ -21,6 +21,18 @@
 #define kPFObjectUpdatedAtKey @"___PFObjectUpdatedAt"
 #define kPFObjectIsDataAvailableKey @"hasBeenFetched"
 
++ (BOOL)canEncodeObject:(id)object
+{
+    BOOL retVal = NO;
+    
+    if ([object respondsToSelector:@selector(encodeWithCoder:)] &&
+        ![object isKindOfClass:[NSAttributedString class]] &&
+        ![object isKindOfClass:[NSMutableAttributedString class]])
+        retVal = YES;
+    
+    return retVal;
+}
+
 - (void)encodeWithCoder:(NSCoder*)encoder
 {
 	//Serialize Parse-specific values
@@ -35,9 +47,14 @@
 	
 	//Serialize all non-nil Parse properties
 	//[self allKeys] returns only the @dynamic properties that are not nil
-	for (NSString* key in [self allKeys]) {
-		id value = self[key];
-		[encoder encodeObject:value forKey:key];
+	for (NSString* inKey in [self allKeys]) {
+        id key = inKey;
+        id value = self[key];
+        
+        if (![NSObject canEncodeObjectOfClass:[value class]])
+            value = nil;
+        
+        [encoder encodeObject:value forKey:key];
 	}
 	
 	//Serialize all non-Parse properties
@@ -67,11 +84,12 @@
 		//Deserialize Parse timestamps
 		self.createdAt = [aDecoder decodeObjectForKey:kPFObjectCreatedAtKey];
 		self.updatedAt = [aDecoder decodeObjectForKey:kPFObjectUpdatedAtKey];
-		
+		        
 		//Deserialize all non-nil Parse properties
 		for (NSString* key in allKeys) {
             id obj = [aDecoder decodeObjectForKey:key];
-			self[key] = obj;
+            if (obj)
+                self[key] = obj;
 		}
 				
 		//Deserialize all non-Parse properties
