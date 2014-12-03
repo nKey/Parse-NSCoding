@@ -10,12 +10,14 @@
 
 @interface NSObject (Properties)
 
++ (BOOL)canEncodeObject:(id)object;
++ (BOOL)isParseObject:(id)object;
++ (NSArray *)nonDynamicKeysToPersist;
+
 - (NSDictionary *)properties;
 - (NSDictionary *)dynamicProperties;
 - (NSDictionary *)nonDynamicProperties;
 - (void)encodeProperties:(NSDictionary*)properties withCoder:(NSCoder *)coder;
 - (void)decodeProperties:(NSDictionary*)properties withCoder:(NSCoder *)coder;
-+ (BOOL)canEncodeObjectOfClass:(Class)aClass;
-+ (BOOL)canEncodeObject:(id)object;
 
 @end

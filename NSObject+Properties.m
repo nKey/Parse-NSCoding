@@ -7,30 +7,36 @@
 //
 
 #import "NSObject+Properties.h"
+#import "PFObject+NSCoding.h"
 #import <objc/runtime.h>
-#import "PFFile.h"
+#import <Parse/Parse.h>
 
 @implementation NSObject (Properties)
 
 #pragma mark - Public
 
-+ (BOOL)canEncodeObjectOfClass:(Class)class
++ (NSArray *)nonDynamicKeysToPersist
 {
-    BOOL retVal = NO;
-    if (class == [PFFile class] ||
-        ([class conformsToProtocol:@protocol(NSCoding)] && class != [NSAttributedString class]))
-        retVal = YES;
-    
-    return retVal;
+    return @[];
 }
 
 + (BOOL)canEncodeObject:(id)object
 {
     BOOL retVal = NO;
-
+    
     if ([object respondsToSelector:@selector(encodeWithCoder:)])
         retVal = YES;
+    
+    return retVal;
+}
 
++ (BOOL)isParseObject:(id)object
+{
+    BOOL retVal = NO;
+    
+    if ([object respondsToSelector:@selector(objectId)])
+        retVal = YES;
+    
     return retVal;
 }
 
@@ -54,11 +60,16 @@
 - (NSDictionary *)nonDynamicProperties {
 	NSMutableDictionary* output = [[NSMutableDictionary alloc] init];
 	NSDictionary* properties = [self properties];
+    NSArray *nonDynamicKeysToPersist = [self.class nonDynamicKeysToPersist];
 	for (NSString* key in properties) {
-		NSArray* attributes = properties[key][@"attributes"];
-		if (![attributes containsObject:@"D"]) {
-			output[key] = properties[key];
-		}
+        
+        if ([nonDynamicKeysToPersist containsObject:key])
+        {
+            NSArray* attributes = properties[key][@"attributes"];
+            if (![attributes containsObject:@"D"]) {
+                output[key] = properties[key];
+            } 
+        }
 	}
     return output;
 }
@@ -88,13 +99,13 @@
                 if ([[type componentsSeparatedByString:@"\""] count] > 1) {
                     className = [[type componentsSeparatedByString:@"\""] objectAtIndex:1];
                     Class class = NSClassFromString(className);
-                    // only decode if the property conforms to NSCoding
-                    if([NSObject canEncodeObjectOfClass:class]){
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
-                        value = [self performSelector:NSSelectorFromString(key)];
+                    value = [self performSelector:NSSelectorFromString(key)];
 #pragma clang diagnostic pop
-
+					
+                    // only decode if the property conforms to NSCoding
+                    if([class conformsToProtocol:@protocol(NSCoding)]){
                         [coder encodeObject:value forKey:key];
                     }
                 }
@@ -173,8 +184,8 @@
                     className = [[type componentsSeparatedByString:@"\""] objectAtIndex:1];
                     Class class = NSClassFromString(className);
                     // only decode if the property conforms to NSCoding
-                    value = [coder decodeObjectForKey:key];
-                    if (value && [NSObject canEncodeObject:value]){
+                    if ([class conformsToProtocol:@protocol(NSCoding )]){
+                        value = [coder decodeObjectForKey:key];
                         [self setValue:value forKey:key];
                     }
                 }
