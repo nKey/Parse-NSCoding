@@ -111,6 +111,7 @@
                 }
                 break;
             case 'c':   // bool
+            case 'B':
                 [invocation invoke];
                 [invocation getReturnValue:&boolValue];
                 [coder encodeObject:[NSNumber numberWithBool:boolValue] forKey:key];
@@ -191,6 +192,7 @@
                 }
                 break;
             case 'c':   // bool
+            case 'B':
                 number = [coder decodeObjectForKey:key];
                 b = [number boolValue];
                 [self setValue:@(b) forKey:key];
