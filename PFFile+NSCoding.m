@@ -20,9 +20,6 @@
 {
     [encoder encodeObject:self.name forKey:kPFFileName];
     [encoder encodeObject:[self ivars] forKey:kPFFileIvars];
-    if (self.isDataAvailable) {
-        [encoder encodeObject:[self getData] forKey:kPFFileData];
-    }
 }
 
 - (id)initWithCoder:(NSCoder*)aDecoder
