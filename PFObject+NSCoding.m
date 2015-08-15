@@ -79,10 +79,10 @@
 		//Deserialize all non-Parse properties
 		NSDictionary* nonParseProperties = [self nonDynamicProperties];
 		[self decodeProperties:nonParseProperties withCoder:aDecoder];
+        
+        //Mark PFObject as not dirty
+        [self->operationSetQueue removeAllObjects];
     }
-	
-	//Mark PFObject as not dirty
-	[self->operationSetQueue removeAllObjects];
 	
 	//Mark PFObject with same hasBeenFetched value as before encoding
 	[self setValue:@(isDataAvailable) forKey:kPFObjectIsDataAvailableKey];
