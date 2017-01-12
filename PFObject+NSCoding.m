@@ -9,6 +9,11 @@
 #import "PFObject+NSCoding.h"
 #import "NSObject+Properties.h"
 
+@interface PFObject () {
+    NSMutableArray *operationSetQueue;
+}
+@end
+
 @implementation PFObject (NSCoding)
 
 @dynamic createdAt;
@@ -81,7 +86,7 @@
 		[self decodeProperties:nonParseProperties withCoder:aDecoder];
         
         //Mark PFObject as not dirty
-        [self->operationSetQueue removeAllObjects];
+        [operationSetQueue removeAllObjects];
     }
 	
 	//Mark PFObject with same hasBeenFetched value as before encoding
